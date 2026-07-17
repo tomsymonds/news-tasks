@@ -1,0 +1,10 @@
+{
+  "id": "news-tasks",
+  "name": "News Tasks",
+  "version": "0.1.0",
+  "minAppVersion": "0.15.0",
+  "description": "A basic scaffold for a News Tasks Obsidian plugin.",
+  "author": "",
+  "authorUrl": "",
+  "isDesktopOnly": false
+}
