@@ -1,0 +1,30 @@
+.news-task-modal .modal {
+	width: min(980px, 92vw);
+}
+
+.news-task-modal .modal-content {
+	max-height: 85vh;
+	overflow-y: auto;
+	padding-bottom: 0.75rem;
+}
+
+.news-task-modal__content .setting-item {
+	align-items: flex-start;
+}
+
+.news-task-modal__content .setting-item-control {
+	flex-wrap: nowrap;
+	align-items: center;
+	gap: 0.35rem;
+}
+
+.news-task-modal__content .setting-item-control > * {
+	margin-top: 0;
+}
+
+.news-task-modal__content .setting-item-control .text,
+.news-task-modal__content .setting-item-control input[type="text"],
+.news-task-modal__content .setting-item-control input[type="date"] {
+	flex: 1 1 auto;
+	min-width: 12rem;
+}

@@ -8,12 +8,10 @@ export default class NewsTasksPlugin extends Plugin {
       id: "create-news-task-note",
       name: "Create News Task Note",
       callback: () => {
-        const initialStoryLink = this.getActiveStoryLink();
+        const activeStoryLink = this.getActiveStoryLink();
         new NewsTaskNoteModal(this.app, {
           mode: "create",
-          initialValues: {
-            story: initialStoryLink ?? undefined,
-          },
+          initialValues: activeStoryLink ? { story: activeStoryLink } : undefined,
           onSubmit: async (note: NewsTaskNote) => {
             await this.saveNewsTaskNote(note);
           },
@@ -36,31 +34,18 @@ export default class NewsTasksPlugin extends Plugin {
           return;
         }
 
-        this.openEditModalForFile(activeFile);
+        const cache = this.app.metadataCache.getFileCache(activeFile);
+        const note = newsTaskFromFrontmatter(cache?.frontmatter, activeFile.basename);
+
+        new NewsTaskNoteModal(this.app, {
+          mode: "edit",
+          initialValues: note.toProps(),
+          onSubmit: async (updated: NewsTaskNote) => {
+            await this.updateNewsTaskNote(activeFile, updated);
+          },
+        }).open();
       },
     });
-
-    this.registerEvent(
-      this.app.workspace.on("file-menu", (menu, abstractFile) => {
-        if (!(abstractFile instanceof TFile)) {
-          return;
-        }
-
-        if (!this.isNewsTaskFile(abstractFile)) {
-          return;
-        }
-
-        menu.addItem((item) => {
-          item
-            .setTitle("Edit News Task Note")
-            .setIcon("pencil")
-            .onClick(() => {
-              this.openEditModalForFile(abstractFile);
-            });
-        });
-      }),
-    );
-
   }
 
   onunload(): void {
@@ -126,21 +111,6 @@ export default class NewsTasksPlugin extends Plugin {
     return type === "News Task";
   }
 
-  private getActiveStoryLink(): string | null {
-    const activeFile = this.app.workspace.getActiveFile();
-    if (!activeFile) {
-      return null;
-    }
-
-    const cache = this.app.metadataCache.getFileCache(activeFile);
-    const type = cache?.frontmatter?.["type"];
-    if (typeof type !== "string" || type.trim().toLowerCase() !== "story") {
-      return null;
-    }
-
-    return `[[${activeFile.basename}]]`;
-  }
-
   private extractBody(markdown: string): string {
     if (!markdown.startsWith("---")) {
       return markdown;
@@ -154,17 +124,19 @@ export default class NewsTasksPlugin extends Plugin {
     return markdown.slice(endIndex + 4).replace(/^\n/, "");
   }
 
-  private openEditModalForFile(file: TFile): void {
-    const cache = this.app.metadataCache.getFileCache(file);
-    const note = newsTaskFromFrontmatter(cache?.frontmatter, file.basename);
+  private getActiveStoryLink(): string | undefined {
+    const activeFile = this.app.workspace.getActiveFile();
+    if (!activeFile) {
+      return undefined;
+    }
 
-    new NewsTaskNoteModal(this.app, {
-      mode: "edit",
-      initialValues: note.toProps(),
-      onSubmit: async (updated: NewsTaskNote) => {
-        await this.updateNewsTaskNote(file, updated);
-      },
-    }).open();
+    const frontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
+    const type = frontmatter?.["type"];
+    if (typeof type === "string" && type.toLowerCase() === "story") {
+      return `[[${activeFile.basename}]]`;
+    }
+
+    return undefined;
   }
 }
     

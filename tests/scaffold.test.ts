@@ -6,7 +6,7 @@ describe("NewsTaskNote", () => {
     const note = new NewsTaskNote({
       title: "",
       story: "Story without wikilink",
-      status: "ToDo",
+      done: false,
     });
 
     const errors = note.validate();
@@ -20,7 +20,7 @@ describe("NewsTaskNote", () => {
     const note = new NewsTaskNote({
       title: "Check council records",
       story: "[[Budget Overspend Investigation]]",
-      status: "Waiting",
+      done: true,
       goal: "Publish accountability piece",
       startDate: "16-07-2026",
       dueDate: "18-07-2026",
@@ -33,7 +33,7 @@ describe("NewsTaskNote", () => {
     const md = note.toMarkdown();
     expect(md).toContain('Title: "Check council records"');
     expect(md).toContain('Story: "[[Budget Overspend Investigation]]"');
-    expect(md).toContain('Status: "Waiting"');
+    expect(md).toContain("Done: true");
     expect(md).toContain('Goal: "Publish accountability piece"');
     expect(md).toContain('Start Date: "16-07-2026"');
     expect(md).toContain('Due Date: "18-07-2026"');
@@ -48,7 +48,7 @@ describe("NewsTaskNote", () => {
     const note = new NewsTaskNote({
       title: "FOI request follow-up",
       story: "[[Town Hall Contracts]]",
-      status: "ToDo",
+      done: false,
     });
 
     expect(note.folderPath()).toBe(NEWS_TASKS_FOLDER);
