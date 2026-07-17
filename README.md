@@ -1,2 +1,2 @@
 # news-tasks
-An Obsidian plug for managing tasks for journalists
+An Obsidian plug in for managing tasks for journalists
