@@ -44,12 +44,12 @@ export class NewsTaskNote {
       errors.push("Done must be a checkbox value (true/false).");
     }
 
-    if (this.props.startDate && !isDdMmYyyyDate(this.props.startDate)) {
-      errors.push("Start Date must be in dd-MM-YYYY format.");
+    if (this.props.startDate && !isSupportedTaskDate(this.props.startDate)) {
+      errors.push("Start Date must be in YYYY-MM-DD format.");
     }
 
-    if (this.props.dueDate && !isDdMmYyyyDate(this.props.dueDate)) {
-      errors.push("Due Date must be in dd-MM-YYYY format.");
+    if (this.props.dueDate && !isSupportedTaskDate(this.props.dueDate)) {
+      errors.push("Due Date must be in YYYY-MM-DD format.");
     }
 
     return errors;
@@ -132,6 +132,14 @@ export function containsObsidianLink(value: string): boolean {
 
 export function isDdMmYyyyDate(value: string): boolean {
   return /^\d{2}-\d{2}-\d{4}$/.test(value);
+}
+
+export function isIsoDate(value: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
+export function isSupportedTaskDate(value: string): boolean {
+  return isIsoDate(value) || isDdMmYyyyDate(value);
 }
 
 function sanitizeFileName(input: string): string {

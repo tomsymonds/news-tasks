@@ -196,7 +196,7 @@ export class NewsTaskNoteModal extends Modal {
 			new Setting(contentEl)
 				.setName("Start Date")
 				.addText((text) => {
-					text.setPlaceholder("DD-MM-YYYY").setValue(this.startDate).onChange((value) => {
+					text.setPlaceholder("YYYY-MM-DD").setValue(this.startDate).onChange((value) => {
 						this.startDate = value;
 					});
 					text.inputEl.style.width = "100%";
@@ -205,7 +205,7 @@ export class NewsTaskNoteModal extends Modal {
 			new Setting(contentEl)
 				.setName("Due Date")
 				.addText((text) => {
-					text.setPlaceholder("DD-MM-YYYY").setValue(this.dueDate).onChange((value) => {
+					text.setPlaceholder("YYYY-MM-DD").setValue(this.dueDate).onChange((value) => {
 						this.dueDate = value;
 					});
 					text.inputEl.style.width = "100%";
@@ -547,12 +547,12 @@ function normalizeDateForModel(value: string, dateFormat: string): string | unde
 
 	const native = parseNativeDate(trimmed);
 	if (native) {
-		return formatAsDdMmYyyy(native);
+		return formatAsIsoDate(native);
 	}
 
 	const parsed = parseWithGlobalMoment(trimmed, [dateFormat, "DD-MM-YYYY", "YYYY-MM-DD", getIso8601Token()], true);
 	if (parsed.isValid()) {
-		return parsed.format("DD-MM-YYYY");
+		return parsed.format("YYYY-MM-DD");
 	}
 
 	return trimmed;
