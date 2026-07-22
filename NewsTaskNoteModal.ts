@@ -39,8 +39,8 @@ export class NewsTaskNoteModal extends Modal {
 	private startDate = "";
 	private dueDate = "";
 	private waitFor = "";
-	private people = "";
-	private organisations = "";
+	private people: string[] = [];
+	private organisations: string[] = [];
 	private tags = "";
 
 	constructor(app: App, options: NewsTaskNoteModalOptions) {
@@ -54,8 +54,8 @@ export class NewsTaskNoteModal extends Modal {
 		this.startDate = initial?.startDate ?? "";
 		this.dueDate = initial?.dueDate ?? "";
 		this.waitFor = initial?.waitFor ?? "";
-		this.people = linkListToDisplay(initial?.people ?? []);
-		this.organisations = linkListToDisplay(initial?.organisations ?? []);
+		this.people = linkListToTitles(initial?.people ?? []);
+		this.organisations = linkListToTitles(initial?.organisations ?? []);
 		this.tags = (initial?.tags ?? []).join(", ");
 	}
 
@@ -77,19 +77,19 @@ export class NewsTaskNoteModal extends Modal {
 				text.inputEl.style.width = "100%";
 			});
 
-		new Setting(contentEl)
+		const storySetting = new Setting(contentEl)
 			.setName("Story")
-			.addText((text) => {
-				text.setValue(this.story).onChange((value) => {
-					this.story = value;
-				});
-				text.inputEl.style.width = "100%";
-			})
 			.addButton((button) => {
 				button.setButtonText("Pick").onClick(() => {
 					this.openStoryPicker();
 				});
 			});
+		this.renderSelectedLinks(storySetting, this.story ? [this.story] : [], (value) => {
+			if (this.story === value) {
+				this.story = "";
+				this.rerender();
+			}
+		});
 
 		new Setting(contentEl)
 			.setName("Done")
@@ -104,6 +104,15 @@ export class NewsTaskNoteModal extends Modal {
 			.addText((text) => {
 				text.setValue(this.goal).onChange((value) => {
 					this.goal = value;
+				});
+				text.inputEl.addEventListener("keydown", (event) => {
+					if (event.key !== "Enter") {
+						return;
+					}
+
+					event.preventDefault();
+					event.stopPropagation();
+					this.goal = text.inputEl.value.trim();
 				});
 				text.inputEl.style.width = "100%";
 			})
@@ -217,33 +226,29 @@ export class NewsTaskNoteModal extends Modal {
 				});
 			});
 
-		new Setting(contentEl)
+		const peopleSetting = new Setting(contentEl)
 			.setName("People")
-			.addText((text) => {
-				text.setValue(this.people).onChange((value) => {
-					this.people = value;
-				});
-				text.inputEl.style.width = "100%";
-			})
 			.addButton((button) => {
 				button.setButtonText("Pick").onClick(() => {
 					this.openPeoplePicker();
 				});
 			});
+		this.renderSelectedLinks(peopleSetting, this.people, (value) => {
+			this.people = this.people.filter((item) => item !== value);
+			this.rerender();
+		});
 
-		new Setting(contentEl)
+		const organisationsSetting = new Setting(contentEl)
 			.setName("Organisations")
-			.addText((text) => {
-				text.setValue(this.organisations).onChange((value) => {
-					this.organisations = value;
-				});
-				text.inputEl.style.width = "100%";
-			})
 			.addButton((button) => {
 				button.setButtonText("Pick").onClick(() => {
 					this.openOrganisationPicker();
 				});
 			});
+		this.renderSelectedLinks(organisationsSetting, this.organisations, (value) => {
+			this.organisations = this.organisations.filter((item) => item !== value);
+			this.rerender();
+		});
 
 		new Setting(contentEl)
 			.addButton((button) => {
@@ -273,12 +278,12 @@ export class NewsTaskNoteModal extends Modal {
 				title: this.title.trim(),
 				story: toWikiLink(this.story.trim()),
 				done: this.done,
-				goal: normalizeOptional(this.goal),
+				goal: normalizeOptionalLink(this.goal),
 				startDate: normalizeDateForModel(this.startDate, dateFormat),
 				dueDate: normalizeDateForModel(this.dueDate, dateFormat),
 				waitFor: normalizeOptional(this.waitFor),
-				people: displayListToWikiLinks(this.people),
-				organisations: displayListToWikiLinks(this.organisations),
+				people: this.people.map((value) => toWikiLink(value)),
+				organisations: this.organisations.map((value) => toWikiLink(value)),
 				tags: parseCommaSeparatedList(this.tags),
 			});
 
@@ -296,7 +301,9 @@ export class NewsTaskNoteModal extends Modal {
 	}
 
 	private openStoryPicker(): void {
-		const choices = this.getFilesByType("Stories/", "story").map((file) => file.basename);
+		const choices = this.getFilesByType("Stories/", "story")
+			.sort((a, b) => b.stat.mtime - a.stat.mtime)
+			.map((file) => file.basename);
 		this.openPicker(choices, (value) => {
 			this.story = value;
 			this.rerender();
@@ -304,27 +311,32 @@ export class NewsTaskNoteModal extends Modal {
 	}
 
 	private openPeoplePicker(): void {
-		const choices = this.getFilesByType("People/", "person").map((file) => file.basename);
+		const choices = this.getFilesByType("People/", "person")
+			.sort((a, b) => a.basename.localeCompare(b.basename))
+			.map((file) => file.basename);
 		this.openPicker(choices, (value) => {
-			this.people = mergeCommaValues(this.people, value);
+			this.people = appendUnique(this.people, value);
 			this.rerender();
 		});
 	}
 
 	private openOrganisationPicker(): void {
-		const choices = this.getFilesByType("Organisations/", "organisation").map((file) => file.basename);
+		const choices = this.getFilesByType("Organisations/", "organisation")
+			.sort((a, b) => a.basename.localeCompare(b.basename))
+			.map((file) => file.basename);
 		this.openPicker(choices, (value) => {
-			this.organisations = mergeCommaValues(this.organisations, value);
+			this.organisations = appendUnique(this.organisations, value);
 			this.rerender();
 		});
 	}
 
 	private openGoalPicker(): void {
-		const goals = this.getNewsTaskFrontmattersForCurrentStory()
+		const goals = uniqueSorted(this.getNewsTaskFrontmattersForCurrentStory()
 			.map((fm) => String(fm["Goal"] ?? fm["goal"] ?? "").trim())
-			.filter((value) => value.length > 0);
-		this.openPicker(uniqueSorted(goals), (value) => {
-			this.goal = value;
+			.filter((value) => value.length > 0)
+			.map((value) => linkDisplayValue(value)));
+		this.openPicker(goals, (value) => {
+			this.goal = linkDisplayValue(value);
 			this.rerender();
 		});
 	}
@@ -355,8 +367,7 @@ export class NewsTaskNoteModal extends Modal {
 			.filter((file) => {
 				const value = this.app.metadataCache.getFileCache(file)?.frontmatter?.["type"];
 				return typeof value === "string" && value.toLowerCase() === type.toLowerCase();
-			})
-			.sort((a, b) => a.basename.localeCompare(b.basename));
+			});
 	}
 
 	private getNewsTaskFrontmattersForCurrentStory(): Array<Record<string, unknown>> {
@@ -404,6 +415,43 @@ export class NewsTaskNoteModal extends Modal {
 		return fallback;
 	}
 
+	private renderSelectedLinks(setting: Setting, values: string[], onRemove: (value: string) => void): void {
+		if (values.length === 0) {
+			return;
+		}
+
+		const wrapper = createDiv({ cls: "news-task-selected-list" });
+		const firstButton = setting.controlEl.querySelector("button");
+		if (firstButton) {
+			setting.controlEl.insertBefore(wrapper, firstButton);
+		} else {
+			setting.controlEl.appendChild(wrapper);
+		}
+
+		values.forEach((value) => {
+			const item = wrapper.createDiv({ cls: "news-task-selected-item" });
+			const chip = item.createDiv({ cls: "news-task-selected-chip" });
+			const link = chip.createEl("a", {
+				cls: "news-task-selected-link",
+				text: value,
+				href: "#",
+			});
+			link.addEventListener("click", (event) => {
+				event.preventDefault();
+				this.app.workspace.openLinkText(value, "", true);
+			});
+
+			const remove = item.createEl("button", {
+				cls: "news-task-selected-remove",
+				text: "x",
+			});
+			remove.type = "button";
+			remove.addEventListener("click", () => {
+				onRemove(value);
+			});
+		});
+	}
+
 }
 
 function normalizeOptional(value: string): string | undefined {
@@ -415,9 +463,12 @@ function uniqueSorted(values: string[]): string[] {
 	return [...new Set(values)].sort((a, b) => a.localeCompare(b));
 }
 
-function mergeCommaValues(existing: string, next: string): string {
-	const merged = uniqueSorted([...parseCommaSeparatedList(existing), next]);
-	return merged.join(", ");
+function appendUnique(existing: string[], next: string): string[] {
+	if (existing.includes(next)) {
+		return existing;
+	}
+
+	return [...existing, next];
 }
 
 function linkDisplayValue(value: string): string {
@@ -447,12 +498,17 @@ function normalizeLinkTarget(value: string): string | null {
 	return trimmed.length > 0 ? trimmed : null;
 }
 
-function linkListToDisplay(values: string[]): string {
-	return values.map((value) => linkDisplayValue(value)).join(", ");
+function linkListToTitles(values: string[]): string[] {
+	return values.map((value) => linkDisplayValue(value)).filter((value) => value.trim().length > 0);
 }
 
-function displayListToWikiLinks(value: string): string[] {
-	return parseCommaSeparatedList(value).map((item) => toWikiLink(item));
+function normalizeOptionalLink(value: string): string | undefined {
+	const normalized = normalizeOptional(value);
+	if (!normalized) {
+		return undefined;
+	}
+
+	return toWikiLink(normalized);
 }
 
 function formatTodayOffset(offsetDays: number): string {

@@ -28,3 +28,44 @@
 	flex: 1 1 auto;
 	min-width: 12rem;
 }
+
+.news-task-selected-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem;
+	align-items: center;
+	margin: 0;
+}
+
+.news-task-selected-item {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+}
+
+.news-task-selected-chip {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.15rem 0.45rem;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 0.5rem;
+	background: var(--background-secondary);
+}
+
+.news-task-selected-link {
+	color: var(--link-color);
+	text-decoration: underline;
+}
+
+.news-task-selected-remove {
+	border: 0;
+	background: transparent;
+	color: var(--text-muted);
+	cursor: pointer;
+	padding: 0 0.15rem;
+	line-height: 1;
+}
+
+.news-task-selected-remove:hover {
+	color: var(--text-normal);
+}
