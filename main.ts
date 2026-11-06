@@ -56,7 +56,7 @@ export default class NewsTasksPlugin extends Plugin {
     await this.ensureNewsTasksFolder();
 
     const outputPath = this.resolveUniqueTaskPath(note);
-    const file = await this.app.vault.create(outputPath, note.toMarkdown());
+    const file = await this.app.vault.create(outputPath, note.toNewNoteMarkdown());
     await this.app.workspace.getLeaf(true).openFile(file);
     new Notice(`Created task: ${file.basename}`);
   }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { NEWS_TASKS_FOLDER, NewsTaskNote } from "../NewsTaskNote";
+import { NEW_TASK_BODY, NEWS_TASKS_FOLDER, NewsTaskNote } from "../NewsTaskNote";
 
 describe("NewsTaskNote", () => {
   it("requires title and story link", () => {
@@ -53,5 +53,19 @@ describe("NewsTaskNote", () => {
 
     expect(note.folderPath()).toBe(NEWS_TASKS_FOLDER);
     expect(note.filePath()).toBe("News Tasks/FOI request follow-up.md");
+  });
+
+  it("adds the Linked Tasks base embed to new task notes only", () => {
+    const note = new NewsTaskNote({
+      title: "Call press office",
+      story: "[[Town Hall Contracts]]",
+      done: false,
+    });
+
+    const md = note.toNewNoteMarkdown();
+    expect(md.startsWith(note.toMarkdown())).toBe(true);
+    expect(md.endsWith("\n![[News Tasks.base#Linked Tasks]]\n")).toBe(true);
+    expect(NEW_TASK_BODY).toBe("![[News Tasks.base#Linked Tasks]]\n");
+    expect(note.toMarkdown()).not.toContain("Linked Tasks");
   });
 });

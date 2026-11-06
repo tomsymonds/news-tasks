@@ -14,6 +14,7 @@ export interface NewsTaskNoteProps {
 }
 
 export const NEWS_TASKS_FOLDER = "News Tasks";
+export const NEW_TASK_BODY = "![[News Tasks.base#Linked Tasks]]\n";
 
 export class NewsTaskNote {
   private readonly props: NewsTaskNoteProps;
@@ -98,6 +99,11 @@ export class NewsTaskNote {
     ];
 
     return `---\n${frontmatter.join("\n")}\n---\n`;
+  }
+
+  /** Markdown for a brand-new task note: frontmatter plus the default body. */
+  public toNewNoteMarkdown(): string {
+    return `${this.toMarkdown()}\n${NEW_TASK_BODY}`;
   }
 }
 
