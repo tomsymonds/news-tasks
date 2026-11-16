@@ -24,7 +24,7 @@ describe("NewsTaskNote", () => {
       goal: "Publish accountability piece",
       startDate: "2026-07-16",
       dueDate: "2026-07-18",
-      waitFor: "Interview finance director",
+      next: "Interview finance director",
       people: ["[[Jane Doe]]"],
       organisations: ["[[City Council]]"],
       tags: ["public-spending", "urgent"],
@@ -37,7 +37,7 @@ describe("NewsTaskNote", () => {
     expect(md).toContain('Goal: "Publish accountability piece"');
     expect(md).toContain('Start Date: "2026-07-16"');
     expect(md).toContain('Due Date: "2026-07-18"');
-    expect(md).toContain('Wait For: "Interview finance director"');
+    expect(md).toContain('Next: "Interview finance director"');
     expect(md).toContain('People: ["[[Jane Doe]]"]');
     expect(md).toContain('Organisations: ["[[City Council]]"]');
     expect(md).toContain('Tags: ["public-spending", "urgent"]');

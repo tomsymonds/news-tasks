@@ -7,7 +7,7 @@ export interface NewsTaskNoteProps {
   goal?: string;
   startDate?: string;
   dueDate?: string;
-  waitFor?: string;
+  next?: string;
   people?: string[];
   organisations?: string[];
   tags?: string[];
@@ -63,7 +63,7 @@ export class NewsTaskNote {
       goal: this.props.goal,
       startDate: this.props.startDate,
       dueDate: this.props.dueDate,
-      waitFor: this.props.waitFor,
+      next: this.props.next,
       people: [...(this.props.people ?? [])],
       organisations: [...(this.props.organisations ?? [])],
       tags: [...(this.props.tags ?? [])],
@@ -90,7 +90,7 @@ export class NewsTaskNote {
       `Goal: ${yamlScalar(this.props.goal ?? "")}`,
       `Start Date: ${yamlScalar(this.props.startDate ?? "")}`,
       `Due Date: ${yamlScalar(this.props.dueDate ?? "")}`,
-      `Wait For: ${yamlScalar(this.props.waitFor ?? "")}`,
+      `Next: ${yamlScalar(this.props.next ?? "")}`,
       `People: ${yamlArray(this.props.people ?? [])}`,
       `Organisations: ${yamlArray(this.props.organisations ?? [])}`,
       `Tags: ${yamlArray(this.props.tags ?? [])}`,
@@ -112,7 +112,7 @@ export function newsTaskFromFrontmatter(frontmatter: Record<string, unknown> | n
     goal: normalizeOptionalString(fm["Goal"] ?? fm["goal"]),
     startDate: normalizeOptionalString(fm["Start Date"] ?? fm["start date"] ?? fm["startDate"]),
     dueDate: normalizeOptionalString(fm["Due Date"] ?? fm["due date"] ?? fm["dueDate"]),
-    waitFor: normalizeOptionalString(fm["Wait For"] ?? fm["wait for"] ?? fm["waitFor"]),
+    next: normalizeOptionalString(fm["Next"] ?? fm["next"] ?? fm["Wait For"] ?? fm["wait for"] ?? fm["waitFor"]),
     people: normalizeStringList(fm["People"] ?? fm["people"]),
     organisations: normalizeStringList(fm["Organisations"] ?? fm["organisations"]),
     tags: normalizeStringList(fm["Tags"] ?? fm["tags"]),

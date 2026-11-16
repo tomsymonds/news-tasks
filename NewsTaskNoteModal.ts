@@ -38,7 +38,7 @@ export class NewsTaskNoteModal extends Modal {
 	private goal = "";
 	private startDate = "";
 	private dueDate = "";
-	private waitFor = "";
+	private next = "";
 	private people: string[] = [];
 	private organisations: string[] = [];
 	private tags = "";
@@ -53,7 +53,7 @@ export class NewsTaskNoteModal extends Modal {
 		this.goal = initial?.goal ?? "";
 		this.startDate = initial?.startDate ?? "";
 		this.dueDate = initial?.dueDate ?? "";
-		this.waitFor = initial?.waitFor ?? "";
+		this.next = initial?.next ?? "";
 		this.people = linkListToTitles(initial?.people ?? []);
 		this.organisations = linkListToTitles(initial?.organisations ?? []);
 		this.tags = (initial?.tags ?? []).join(", ");
@@ -213,16 +213,16 @@ export class NewsTaskNoteModal extends Modal {
 		}
 
 		new Setting(contentEl)
-			.setName("Wait For")
+			.setName("Next")
 			.addText((text) => {
-				text.setValue(this.waitFor).onChange((value) => {
-					this.waitFor = value;
+				text.setValue(this.next).onChange((value) => {
+					this.next = value;
 				});
 				text.inputEl.style.width = "100%";
 			})
 			.addButton((button) => {
 				button.setButtonText("Pick").onClick(() => {
-					this.openWaitForPicker();
+					this.openNextPicker();
 				});
 			});
 
@@ -281,7 +281,7 @@ export class NewsTaskNoteModal extends Modal {
 				goal: normalizeOptionalLink(this.goal),
 				startDate: normalizeDateForModel(this.startDate, dateFormat),
 				dueDate: normalizeDateForModel(this.dueDate, dateFormat),
-				waitFor: normalizeOptional(this.waitFor),
+				next: normalizeOptional(this.next),
 				people: this.people.map((value) => toWikiLink(value)),
 				organisations: this.organisations.map((value) => toWikiLink(value)),
 				tags: parseCommaSeparatedList(this.tags),
@@ -341,12 +341,12 @@ export class NewsTaskNoteModal extends Modal {
 		});
 	}
 
-	private openWaitForPicker(): void {
-		const waitFors = this.getNewsTaskFrontmattersForCurrentStory()
+	private openNextPicker(): void {
+		const nextOptions = this.getNewsTaskFrontmattersForCurrentStory()
 			.map((fm) => String(fm["Title"] ?? fm["title"] ?? "").trim())
 			.filter((value) => value.length > 0 && value !== this.title.trim());
-		this.openPicker(uniqueSorted(waitFors), (value) => {
-			this.waitFor = value;
+		this.openPicker(uniqueSorted(nextOptions), (value) => {
+			this.next = value;
 			this.rerender();
 		});
 	}
